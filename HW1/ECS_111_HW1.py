@@ -31,7 +31,79 @@ def kMeans(normalizedData,k=1,maxIter=50):
     distanceMat[:,j] = np.sqrt(np.sum(np.square(normalizedData-centroids[j,:]),axis=1))
     clusterInds = np.argmin(distanceMat,axis=1)
     return centroids, clusterInds
-            
+
+def dbscan(normalizedData,eps,minpts):
+    
+    def findNeighbors(normalizedData,eps,element):
+        point = normalizedData[element]
+        distances = np.linalg.norm(normalizedData-point,axis=1)
+        neighborIndices = np.where(distances<eps)[0]
+        
+        return neighborIndices
+    def findFullCluster(normalizedData,eps,element,neighborIndices,labels,clusterNum,minpts):
+        i=0
+        while len(neighborIndices)>i:
+            nearbyPointInd = neighborIndices[i]
+            if labels[nearbyPointInd] == -1:
+                labels[nearbyPointInd] = clusterNum
+            if labels[nearbyPointInd] == 0:
+                labels[nearbyPointInd] = clusterNum
+                newNeighborIndices = findNeighbors(normalizedData,eps,nearbyPointInd)
+                if len(newNeighborIndices) > minpts:
+                    neighborIndices = np.append(neighborIndices, newNeighborIndices)
+            i += 1
+        return labels
+    
+    clusterNum = 1
+    
+    labels = np.full(np.shape(data)[0],0)
+    for element in range(len(labels)):
+        datapoint = normalizedData[element]
+        dataPointLabel = labels[element]
+        neighborIndices = findNeighbors(normalizedData,eps,element)
+        if dataPointLabel != 0:
+            continue #corresponds to data points that have already been grouped
+        if len(neighborIndices) < minpts:
+            labels[element] = -1 #corresponds to noise
+        else:
+            labels = findFullCluster(normalizedData,eps,element,neighborIndices,labels,clusterNum,minpts)
+            clusterNum += 1
+        
+    return labels
+    
+    
+    
+    
+normalizedData=normalizeData(data, method='none')
+eps = 15
+minpts = 4
+clusterInds = dbscan(data,eps,minpts)
+cmap = get_cmap('tab10')
+
+fig, ax = plt.subplots(figsize=(8, 6))
+unique_labels = set(clusterInds)
+for label in unique_labels:
+    if label == -1:
+        color = 'black'  # Noise points
+        label_name = 'Noise'
+    else:
+        color = cmap(label / max(unique_labels))
+        label_name = f'Cluster {label}'
+    cluster_points = data[clusterInds == label]
+    ax.scatter(cluster_points[:, 0], cluster_points[:, 1], s=10, color=color, label=label_name)
+
+ax.set_title("DBSCAN Clustering")
+ax.set_xlabel("X")
+ax.set_ylabel("Y")
+ax.legend()
+plt.show()
+    
+    
+    
+    
+    
+    
+    
 normalizedData=normalizeData(data, method='none')
 
 k=6

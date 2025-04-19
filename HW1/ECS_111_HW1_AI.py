@@ -36,7 +36,7 @@ def kmeans(data, k, max_iters=100):
 # Step 4: Implement DBSCAN
 def dbscan(data, eps, min_samples):
     n = data.shape[0]
-    labels = np.full(n, -1)  # Initialize all points as noise (-1)
+    labels = np.full(n, 0)  # Initialize all points as noise (-1)
     cluster_id = 0
 
     def region_query(point_idx):
@@ -59,7 +59,7 @@ def dbscan(data, eps, min_samples):
             i += 1
 
     for point_idx in range(n):
-        if labels[point_idx] != -1:  # Already processed
+        if labels[point_idx] != 0:  # Already processed
             continue
         neighbors = region_query(point_idx)
         if len(neighbors) < min_samples:
@@ -86,8 +86,8 @@ data_abs_norm = absolute_distance_normalization(data)
 labels_abs_norm, centroids_abs_norm = kmeans(data_abs_norm, k)
 
 # Step 6: Perform DBSCAN
-eps = 70  # Maximum distance for neighbors
-min_samples = 5  # Minimum number of points to form a cluster
+eps = 15  # Maximum distance for neighbors
+min_samples = 4  # Minimum number of points to form a cluster
 labels_dbscan = dbscan(data, eps, min_samples)
 
 # Step 7: Plot all results as subplots
