@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.cm import get_cmap
+from sklearn.cluster import KMeans, DBSCAN
 
 # Step 1: Load the data
 data = np.loadtxt("clusterData_test_unlabeled.dat")
-#data = np.loadtxt("clusterData_train.dat")
-
+# data = np.loadtxt("clusterData_train.dat")
 
 # Step 2: Define normalization methods
 def z_score_normalization(data):
@@ -18,7 +18,7 @@ def absolute_distance_normalization(data):
     data_max = np.max(data, axis=0)
     return (data - data_min) / (data_max - data_min)
 
-# Step 3: Implement K-means clustering
+# Step 3: Homemade K-means clustering
 def kmeans(data, k, max_iters=100):
     np.random.seed(42)  # For reproducibility
     centroids = data[np.random.choice(data.shape[0], k, replace=False)]
@@ -33,7 +33,7 @@ def kmeans(data, k, max_iters=100):
 
     return labels, centroids
 
-# Step 4: Implement DBSCAN
+# Step 4: Homemade DBSCAN
 def dbscan(data, eps, min_samples):
     n = data.shape[0]
     labels = np.full(n, 0)  # Initialize all points as noise (-1)
@@ -70,74 +70,47 @@ def dbscan(data, eps, min_samples):
 
     return labels
 
-# Step 5: Perform clustering with different normalization methods
+# Step 5: Perform clustering with homemade K-means
 k = 6  # Number of clusters
+labels_homemade_kmeans, centroids_homemade_kmeans = kmeans(data, k)
 
-# No normalization
-data_no_norm = data
-labels_no_norm, centroids_no_norm = kmeans(data_no_norm, k)
+# Step 6: Perform clustering with premade K-means
+kmeans_model = KMeans(n_clusters=k, random_state=42)
+labels_premade_kmeans = kmeans_model.fit_predict(data)
+centroids_premade_kmeans = kmeans_model.cluster_centers_
 
-# Z-score normalization
-data_z_score = z_score_normalization(data)
-labels_z_score, centroids_z_score = kmeans(data_z_score, k)
-
-# Absolute distance normalization
-data_abs_norm = absolute_distance_normalization(data)
-labels_abs_norm, centroids_abs_norm = kmeans(data_abs_norm, k)
-
-# Step 6: Perform DBSCAN
+# Step 7: Perform clustering with homemade DBSCAN
 eps = 15  # Maximum distance for neighbors
 min_samples = 4  # Minimum number of points to form a cluster
-labels_dbscan = dbscan(data, eps, min_samples)
+labels_homemade_dbscan = dbscan(data, eps, min_samples)
 
-# Step 7: Plot all results as subplots
-fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+# Step 8: Perform clustering with premade DBSCAN
+dbscan_model = DBSCAN(eps=eps, min_samples=min_samples)
+labels_premade_dbscan = dbscan_model.fit_predict(data)
 
-# Plot initial data
-axes[0, 0].scatter(data[:, 0], data[:, 1], s=10, color='blue', label='Initial Data')
-axes[0, 0].set_title("Initial Data")
-axes[0, 0].set_xlabel("X")
-axes[0, 0].set_ylabel("Y")
-axes[0, 0].legend()
+# Step 9: Plot results for comparison
+fig, axes = plt.subplots(2, 2, figsize=(12, 12))
 
-# Plot clustering with no normalization
+# Plot homemade K-means
 cmap = get_cmap('tab10')
 colors = [cmap(i / k) for i in range(k)]
 for i in range(k):
-    cluster_points = data_no_norm[labels_no_norm == i]
+    cluster_points = data[labels_homemade_kmeans == i]
+    axes[0, 0].scatter(cluster_points[:, 0], cluster_points[:, 1], s=10, color=colors[i], label=f'Cluster {i+1}')
+axes[0, 0].scatter(centroids_homemade_kmeans[:, 0], centroids_homemade_kmeans[:, 1], s=100, color='black', marker='X', label='Centroids')
+axes[0, 0].set_title("Homemade K-means")
+axes[0, 0].legend()
+
+# Plot premade K-means
+for i in range(k):
+    cluster_points = data[labels_premade_kmeans == i]
     axes[0, 1].scatter(cluster_points[:, 0], cluster_points[:, 1], s=10, color=colors[i], label=f'Cluster {i+1}')
-axes[0, 1].scatter(centroids_no_norm[:, 0], centroids_no_norm[:, 1], s=100, color='black', marker='X', label='Centroids')
-axes[0, 1].set_title("Clustering (No Normalization)")
-axes[0, 1].set_xlabel("X")
-axes[0, 1].set_ylabel("Y")
+axes[0, 1].scatter(centroids_premade_kmeans[:, 0], centroids_premade_kmeans[:, 1], s=100, color='black', marker='X', label='Centroids')
+axes[0, 1].set_title("Premade K-means")
 axes[0, 1].legend()
 
-# Plot clustering with z-score normalization
-for i in range(k):
-    cluster_points = data_z_score[labels_z_score == i]
-    axes[1, 0].scatter(cluster_points[:, 0], cluster_points[:, 1], s=10, color=colors[i], label=f'Cluster {i+1}')
-axes[1, 0].scatter(centroids_z_score[:, 0], centroids_z_score[:, 1], s=100, color='black', marker='X', label='Centroids')
-axes[1, 0].set_title("Clustering (Z-score Normalization)")
-axes[1, 0].set_xlabel("X")
-axes[1, 0].set_ylabel("Y")
-axes[1, 0].legend()
-
-# Plot clustering with absolute distance normalization
-for i in range(k):
-    cluster_points = data_abs_norm[labels_abs_norm == i]
-    axes[1, 1].scatter(cluster_points[:, 0], cluster_points[:, 1], s=10, color=colors[i], label=f'Cluster {i+1}')
-axes[1, 1].scatter(centroids_abs_norm[:, 0], centroids_abs_norm[:, 1], s=100, color='black', marker='X', label='Centroids')
-axes[1, 1].set_title("Clustering (Absolute Distance Normalization)")
-axes[1, 1].set_xlabel("X")
-axes[1, 1].set_ylabel("Y")
-axes[1, 1].legend()
-
-plt.tight_layout()
-plt.show()
-
-# Step 8: Plot DBSCAN results
-fig, ax = plt.subplots(figsize=(8, 6))
-unique_labels = set(labels_dbscan)
+# Plot homemade DBSCAN
+unique_labels = set(labels_homemade_dbscan)
 for label in unique_labels:
     if label == -1:
         color = 'black'  # Noise points
@@ -145,11 +118,24 @@ for label in unique_labels:
     else:
         color = cmap(label / max(unique_labels))
         label_name = f'Cluster {label}'
-    cluster_points = data[labels_dbscan == label]
-    ax.scatter(cluster_points[:, 0], cluster_points[:, 1], s=10, color=color, label=label_name)
+    cluster_points = data[labels_homemade_dbscan == label]
+    axes[1, 0].scatter(cluster_points[:, 0], cluster_points[:, 1], s=10, color=color, label=label_name)
+axes[1, 0].set_title("Homemade DBSCAN")
+axes[1, 0].legend()
 
-ax.set_title("DBSCAN Clustering")
-ax.set_xlabel("X")
-ax.set_ylabel("Y")
-ax.legend()
+# Plot premade DBSCAN
+unique_labels = set(labels_premade_dbscan)
+for label in unique_labels:
+    if label == -1:
+        color = 'black'  # Noise points
+        label_name = 'Noise'
+    else:
+        color = cmap(label / max(unique_labels))
+        label_name = f'Cluster {label}'
+    cluster_points = data[labels_premade_dbscan == label]
+    axes[1, 1].scatter(cluster_points[:, 0], cluster_points[:, 1], s=10, color=color, label=label_name)
+axes[1, 1].set_title("Premade DBSCAN")
+axes[1, 1].legend()
+
+plt.tight_layout()
 plt.show()
