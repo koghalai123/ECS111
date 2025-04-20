@@ -50,5 +50,5 @@ def plot_csv_data(csv_file):
 
 # Example usage
 if __name__ == "__main__":
-    csv_file = "kmeans_results_train.csv"
+    csv_file = "kmeans_results_test.csv"
     plot_csv_data(csv_file)
