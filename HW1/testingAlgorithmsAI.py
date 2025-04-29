@@ -11,6 +11,8 @@ import matplotlib
 from scipy.cluster.hierarchy import dendrogram, linkage, fcluster
 from sklearn.mixture import GaussianMixture
 from sklearn.metrics import pairwise_distances_argmin_min
+from scipy.spatial.distance import pdist, squareform
+from scipy.stats import multivariate_normal
 
 # Load and normalize data
 data = np.loadtxt("clusterData_test_unlabeled.dat")
@@ -62,16 +64,158 @@ def kMeansPlusPlus(normalizedData, k=1, maxIter=50):
     return centroids, labels
 
 # Hierarchical clustering implementation
+
+
 def hierarchicalClustering(normalizedData, method='ward', k=3):
-    Z = linkage(normalizedData, method=method)
-    labels = fcluster(Z, k, criterion='maxclust')
+    """
+    From-scratch implementation of agglomerative hierarchical clustering
+    """
+    n = len(normalizedData)
+    if n < k:
+        raise ValueError("Number of clusters cannot be greater than number of data points")
+    
+    # Initialize: each point is its own cluster
+    clusters = [[i] for i in range(n)]
+    distances = squareform(pdist(normalizedData))
+    np.fill_diagonal(distances, np.inf)  # ignore self-distances
+    
+    # Store cluster distances in a dictionary for efficient lookup
+    cluster_distances = {}
+    for i in range(n):
+        for j in range(i+1, n):
+            cluster_distances[(i,j)] = distances[i,j]
+    
+    while len(clusters) > k:
+        # Find the two closest clusters
+        min_dist = np.inf
+        merge_indices = (0, 1)
+        
+        # Check all pairs of clusters
+        for i in range(len(clusters)):
+            for j in range(i+1, len(clusters)):
+                # Get all pairwise distances between clusters i and j
+                dists = []
+                for a in clusters[i]:
+                    for b in clusters[j]:
+                        if a < b:
+                            dists.append(cluster_distances[(a,b)])
+                        else:
+                            dists.append(cluster_distances[(b,a)])
+                
+                # Compute linkage criterion
+                if method == 'single':
+                    current_dist = min(dists)
+                elif method == 'complete':
+                    current_dist = max(dists)
+                elif method == 'average':
+                    current_dist = sum(dists)/len(dists)
+                elif method == 'ward':
+                    # Ward's method: minimize variance after merging
+                    merged = np.vstack([normalizedData[clusters[i]], normalizedData[clusters[j]]])
+                    current_dist = np.sum((merged - np.mean(merged, axis=0))**2)
+                
+                if current_dist < min_dist:
+                    min_dist = current_dist
+                    merge_indices = (i, j)
+        
+        # Merge the two closest clusters
+        i, j = merge_indices
+        clusters[i].extend(clusters[j])
+        del clusters[j]
+        
+        # Update distance dictionary for the new cluster
+        for c in range(len(clusters)):
+            if c != i:
+                # Get all pairwise distances between new cluster i and cluster c
+                dists = []
+                for a in clusters[i]:
+                    for b in clusters[c]:
+                        if a < b:
+                            dists.append(cluster_distances[(a,b)])
+                        else:
+                            dists.append(cluster_distances[(b,a)])
+                
+                # Update with new linkage distance
+                if method == 'single':
+                    new_dist = min(dists)
+                elif method == 'complete':
+                    new_dist = max(dists)
+                elif method == 'average':
+                    new_dist = sum(dists)/len(dists)
+                elif method == 'ward':
+                    merged = np.vstack([normalizedData[clusters[i]], normalizedData[clusters[c]]])
+                    new_dist = np.sum((merged - np.mean(merged, axis=0))**2)
+                
+                cluster_distances[(min(i,c), max(i,c))] = new_dist
+    
+    # Create labels
+    labels = np.zeros(n, dtype=int)
+    for cluster_idx, cluster in enumerate(clusters):
+        for point_idx in cluster:
+            labels[point_idx] = cluster_idx
+    
     return labels
 
-# Gaussian Mixture Model implementation
-def gmmClustering(normalizedData, k=3, maxIter=100):
-    gmm = GaussianMixture(n_components=k, max_iter=maxIter)
-    labels = gmm.fit_predict(normalizedData)
+
+
+def gmmClustering(normalizedData, k=3, maxIter=100, tol=1e-4):
+    """
+    From-scratch implementation of Gaussian Mixture Model using EM algorithm
+    """
+    n, d = normalizedData.shape
+    
+    # 1. Initialization
+    # Randomly assign cluster responsibilities
+    responsibilities = np.random.rand(n, k)
+    responsibilities = responsibilities / responsibilities.sum(axis=1, keepdims=True)
+    
+    # Initialize parameters
+    weights = np.ones(k) / k  # Uniform weights
+    means = np.array([normalizedData[np.random.choice(n)] for _ in range(k)])
+    covariances = np.array([np.cov(normalizedData.T) for _ in range(k)])
+    
+    log_likelihood = -np.inf
+    converged = False
+    
+    for iteration in range(maxIter):
+        # 2. Expectation Step: Update responsibilities
+        for j in range(k):
+            responsibilities[:, j] = weights[j] * multivariate_normal.pdf(
+                normalizedData, mean=means[j], cov=covariances[j])
+        
+        # Normalize responsibilities
+        responsibilities = responsibilities / responsibilities.sum(axis=1, keepdims=True)
+        
+        # 3. Maximization Step: Update parameters
+        Nk = responsibilities.sum(axis=0)
+        weights = Nk / n
+        
+        for j in range(k):
+            # Update means
+            means[j] = np.sum(responsibilities[:, j:j+1] * normalizedData, axis=0) / Nk[j]
+            
+            # Update covariances
+            diff = normalizedData - means[j]
+            covariances[j] = (responsibilities[:, j] * diff.T) @ diff / Nk[j]
+            # Add small value to diagonal for numerical stability
+            covariances[j] += 1e-6 * np.eye(d)
+        
+        # 4. Check convergence
+        new_log_likelihood = 0
+        for j in range(k):
+            new_log_likelihood += weights[j] * multivariate_normal.pdf(
+                normalizedData, mean=means[j], cov=covariances[j])
+        new_log_likelihood = np.sum(np.log(new_log_likelihood))
+        
+        if np.abs(new_log_likelihood - log_likelihood) < tol:
+            converged = True
+            break
+        log_likelihood = new_log_likelihood
+    
+    # Assign final labels
+    labels = np.argmax(responsibilities, axis=1)
     return labels
+
 
 # Plotting function
 def plot_clusters(data, labels, title, ax=None):
@@ -114,8 +258,8 @@ if __name__ == "__main__":
     plot_clusters(data, kpp_labels, "K-means++ Clustering", axes[0, 1])
     
     # Hierarchical clustering
-    hc_labels = hierarchicalClustering(normalizedData, k=k)
-    plot_clusters(data, hc_labels, "Hierarchical Clustering", axes[1, 0])
+    #hc_labels = hierarchicalClustering(normalizedData, k=k)
+    #plot_clusters(data, hc_labels, "Hierarchical Clustering", axes[1, 0])
     
     # Gaussian Mixture Model clustering
     gmm_labels = gmmClustering(normalizedData, k=k)
