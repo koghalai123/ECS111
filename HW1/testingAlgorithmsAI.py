@@ -266,4 +266,38 @@ if __name__ == "__main__":
     plot_clusters(data, gmm_labels, "Gaussian Mixture Model", axes[1, 1])
     
     plt.tight_layout()
+    
+    
+    
+    # Add this after your existing code, before the plt.show() in the main execution
+
+    # Create comparison figure with premade algorithms
+    fig2, axes2 = plt.subplots(2, 2, figsize=(15, 12))
+    
+    # Plot original data again for reference
+    axes2[0, 0].scatter(data[:, 0], data[:, 1], color='blue', s=10)
+    axes2[0, 0].set_title("Original Data (Reference)")
+    axes2[0, 0].set_xlabel("X")
+    axes2[0, 0].set_ylabel("Y")
+    
+    # Premade K-means++ from sklearn
+    from sklearn.cluster import KMeans
+    kmeans = KMeans(n_clusters=k, init='k-means++', n_init=10, random_state=42)
+    premade_kpp_labels = kmeans.fit_predict(normalizedData)
+    plot_clusters(data, premade_kpp_labels, "Premade K-means++ (sklearn)", axes2[0, 1])
+    
+    # Premade Hierarchical clustering from scipy
+    premade_hc_labels = fcluster(linkage(normalizedData, method='ward'), k, criterion='maxclust') - 1
+    plot_clusters(data, premade_hc_labels, "Premade Hierarchical (scipy)", axes2[1, 0])
+    
+    # Premade GMM from sklearn
+    premade_gmm = GaussianMixture(n_components=6, random_state=42)
+    premade_gmm_labels = premade_gmm.fit_predict(normalizedData)
+    plot_clusters(data, premade_gmm_labels, "Premade GMM (sklearn)", axes2[1, 1])
+    
+    plt.tight_layout()
+    plt.show()
+    
+    
+    
     plt.show()
