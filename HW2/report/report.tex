@@ -1,0 +1,43 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage[margin=1in]{geometry}
+\usepackage{enumitem}
+\usepackage[colorlinks=true]{hyperref} % Improved hyperref setup
+
+% Add this package to help with reference resolution
+\usepackage{bookmark}
+
+\title{ECS 111 Homework Assignment \#2}
+\author{Kevin Oghalai}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\section{Introduction}
+The data was loaded in and then analyzed 
+to determine possible issues that might arise from
+missing values and the various types of data. 
+In this case, there were multiple missing values 
+in addition to many categorical variables, which could not be 
+directly used for analysis. To fix this, one-hot encoding was used. 
+Although data could have been filled in with the mean or median of the 
+column, this would not have working for categorical variables, and in the end,
+this did not end up being necessary.
+
+\section{Data Processing}
+A logsistic regression model was used to predict the probability of 
+a person having an income of over \$50,000. This algorithm comes with
+options to regularize the data, in addition to loss functions, optimizers, 
+
+
+
+
+
+
+\end{document}
