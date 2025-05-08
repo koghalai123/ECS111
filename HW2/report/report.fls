@@ -1,9 +1,9 @@
-PWD /home/koghalai/Desktop/ECS111/HW2/report
+PWD /home/koghalai/Desktop/ECS 111/HW2/report
 INPUT /etc/texmf/web2c/texmf.cnf
 INPUT /usr/share/texmf/web2c/texmf.cnf
 INPUT /usr/share/texlive/texmf-dist/web2c/texmf.cnf
 INPUT /var/lib/texmf/web2c/pdftex/pdflatex.fmt
-INPUT /home/koghalai/Desktop/ECS111/HW2/report/report.tex
+INPUT /home/koghalai/Desktop/ECS 111/HW2/report/report.tex
 OUTPUT report.log
 INPUT /usr/share/texlive/texmf-dist/tex/latex/base/article.cls
 INPUT /usr/share/texlive/texmf-dist/tex/latex/base/article.cls

@@ -34,12 +34,13 @@ in addition to many categorical variables, which could not be
 directly used for analysis. To fix this, one-hot encoding was used. 
 Although data could have been filled in with the mean or median of the 
 column, this would not have working for categorical variables, and in the end,
-this did not end up being necessary.
+this did not end up being necessary. 
 
 \section{Data Processing}
 This algorithm comes with
 options to regularize the data, in addition to loss functions, optimizers, and other 
-hyperparameters. In this case, the dafault values were attemped and then compared with another
+hyperparameters. In this case, the dafault solver and loss function were attemped and 
+then compared with another solver
 and loss function. The default loss and solver were L2 loss and the lbfgs solver. 
 This was compared to the liblinear solver with L1 loss, then the liblinear
 solver with L2 loss. The results were then compared to the default values.
@@ -65,7 +66,7 @@ of that. The results are shown in Figure \ref{fig:results}.
 As shown in the figure above, the training accuracy ended up being higher when
 using the liblinear solver, although the loss function did not seem to matter. 
 Unfortunately, the L1 loss function could not be used with the lbfgs solver,
-so the results are not shown. The training accuacy reached roughly 84.8\% for 
+so the results are not shown. The training accuracy reached roughly 84.8\% for 
 the lbfgs solver, and 85.3\% for the liblinear solver. Additionally, the lbfgs solver
 ended up being too slow to run for more than 
 10,000 iterations,even though it looks like it would go up more with more iterations. 
@@ -83,7 +84,10 @@ below in Figure \ref{fig:results2}.
 Unlike above, the test accuracy actually went down with more iterations, which is 
 likely due to overfitting. The test accuracy ended up going to ~81\% in all 
 cases for a large number of iterations. The liblinear solver seemed to converge 
-more quickly, but the lbfgs solver shows the same trend. 
+more quickly, but the lbfgs solver shows the same trend. In all 
+cases with large numbers of iterations,
+the test accuracy was lower than the training accuracy, which 
+is expected and shows that the data split was done correctly.
 
 \section{Discussion}
 
@@ -99,8 +103,9 @@ While the logistic regression model was able to achieve a high accuracy,
  might say that getting married increases a person's salary, when in reality 
  it might be that people with higher salaries are more likely to afford to 
  get married. A slightly more humorous example would be someone buying a 
- yacht because many billionaires own yachts. The yacht would be expensive 
- and actually put the persn in debt, making them worse off.
+ yacht because many billionaires own yachts. The yacht would be 
+ expensive and unlikely to increase the peron's salary,
+  actually putting the person in debt, making them worse off.
 
  In order to mitigate the issue, it would be useful to analyze exactly 
  which factors cause the model to predict higher incomes. In addition, 

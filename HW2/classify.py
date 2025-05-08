@@ -5,6 +5,8 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.model_selection import train_test_split
 import numpy as np
 import matplotlib.pyplot as plt
+
+#Save unique column values to csv for analysis by hand
 def save_unique_values_to_csv(df, output_file='unique_values.csv'):
     unique_dict = {}
     
@@ -12,15 +14,13 @@ def save_unique_values_to_csv(df, output_file='unique_values.csv'):
         unique_values = df[column].unique().tolist()
         unique_dict[column] = unique_values
     
-    # Convert to DataFrame (transpose for better CSV structure)
     unique_df = pd.DataFrame.from_dict(unique_dict, orient='index').transpose()
     
-    # Save to CSV
     unique_df.to_csv(output_file, index=False)
     print(f"Unique values saved to {output_file}")
     return unique_df
 
-
+#Read in data
 test = pd.read_csv('HW2/adult.test')
 test.columns = [
     "age", "workclass", "fnlwgt", "education", "education-num",
@@ -34,7 +34,7 @@ df.columns = [
     "marital-status", "occupation", "relationship", "race", "sex",
     "capital-gain", "capital-loss", "hours-per-week", "native-country", "income"
 ]
-
+#Perform one hot encoding on categorical variables
 combined = pd.concat([df,test])
 print(combined.head())
 unique_df = save_unique_values_to_csv(combined, 'unique_values.csv')
@@ -47,11 +47,11 @@ encoded_df = pd.get_dummies(combined.drop(columns=['income']))
 encoded_train = encoded_df[0:df.shape[0]]
 encoded_test = encoded_df[df.shape[0]:encoded_df.shape[0]]
 
+#Traing model on training data and test on test data
 def train_test_model(max_iter=500):
     model = LogisticRegression(max_iter=max_iter, multi_class='auto')#,penalty='l1', solver='liblinear'
     model.fit(encoded_train, results_train)
 
-    # Step 5: Predict on new data
     y_pred_train = model.predict(encoded_train)
     predictions_train = y_pred_train == results_train
     prediction_accuracy_train = np.sum(predictions_train)/predictions_train.shape[0]
@@ -63,6 +63,7 @@ def train_test_model(max_iter=500):
     print("Prediction Accuracy on Test Data:", test_prediction_accuracy, ' for max_iter:', max_iter, ' iterations.')
     return prediction_accuracy_train, test_prediction_accuracy
 
+#Iterate over a a couple max_iteration values and save results for plotting later
 iter_mat = np.array([20,50,100,500,1000,2000,4000,7000]) #
 accuracy_mat = np.zeros((len(iter_mat),2))
 for i in range(len(iter_mat)):
