@@ -1,6 +1,6 @@
 import pandas as pd
 import requests, sys, json
-
+import numpy as np
 # Load the CSV file
 file_path = 'FinalProject/200617_TEMPURA.csv'  # Replace with the actual path to your CSV file
 data = pd.read_csv(file_path)
@@ -62,34 +62,57 @@ def flatten_protein_data(protein):
         'Length': protein.get('sequence', {}).get('length')
     }
 
-# Get the data
-taxonomy_id = "54252"  # Candidatus Methanomethylophilus alvus
-print(f"Querying proteins for taxonomy ID: {taxonomy_id}")
-proteins = get_uniprot_proteins(taxonomy_id)
+proteinDF = pd.DataFrame()
 
-# Convert to DataFrame
-if proteins:
-    df = pd.DataFrame([flatten_protein_data(p) for p in proteins])
-    print(f"\nFound {len(df)} proteins for taxonomy ID {taxonomy_id}")
-    print(df.head())
-    
-    # Verify all results match our taxonomy ID
-    mismatches = df[df['Taxonomy ID'].astype(str) != str(taxonomy_id)]
-    if not mismatches.empty:
-        print(f"\nWarning: Found {len(mismatches)} proteins with incorrect taxonomy IDs:")
-        print(mismatches[['Accession', 'Taxonomy ID']])
-else:
-    print("No proteins found for this taxonomy ID")
+for i in range(lowTempEntries.shape[0]):
+    taxonomy_id = str(lowTempEntries['taxonomy_id'].iloc[i])
+    print(f"Querying proteins for taxonomy ID: {taxonomy_id}")
+    proteins = get_uniprot_proteins(taxonomy_id)
 
-# Get the data
-taxonomy_id = "54252"  # Example: Candidatus Methanomethylophilus alvus
-proteins = get_uniprot_proteins(taxonomy_id)
+    # Convert to DataFrame
+    if proteins:
+        df = pd.DataFrame([flatten_protein_data(p) for p in proteins])
+        print(f"\nFound {len(df)} proteins for taxonomy ID {taxonomy_id}")
+        print(df.head())
+        
+        # Verify all results match our taxonomy ID
+        mismatches = df[df['Taxonomy ID'].astype(str) != str(taxonomy_id)]
+        proteinDF = pd.concat([proteinDF, df], ignore_index=True)
+        if not mismatches.empty:
+            print(f"\nWarning: Found {len(mismatches)} proteins with incorrect taxonomy IDs:")
+            print(mismatches[['Accession', 'Taxonomy ID']])
+    else:
+        print("No proteins found for this taxonomy ID")
 
-# Convert to DataFrame
-df = pd.DataFrame([flatten_protein_data(p) for p in proteins])
+proteinDF.to_csv('lowTempProteins.csv', index=False)
 
-# Display the first few rows
-print(df.head())
+
+
+proteinDF = pd.DataFrame()
+
+for i in range(np.min([medTempEntries.shape[0],50])):
+    taxonomy_id = str(medTempEntries['taxonomy_id'].iloc[i])
+    print(f"Querying proteins for taxonomy ID: {taxonomy_id}")
+    proteins = get_uniprot_proteins(taxonomy_id)
+
+    # Convert to DataFrame
+    if proteins:
+        df = pd.DataFrame([flatten_protein_data(p) for p in proteins])
+        print(f"\nFound {len(df)} proteins for taxonomy ID {taxonomy_id}")
+        print(df.head())
+        
+        # Verify all results match our taxonomy ID
+        mismatches = df[df['Taxonomy ID'].astype(str) != str(taxonomy_id)]
+        proteinDF = pd.concat([proteinDF, df], ignore_index=True)
+        if not mismatches.empty:
+            print(f"\nWarning: Found {len(mismatches)} proteins with incorrect taxonomy IDs:")
+            print(mismatches[['Accession', 'Taxonomy ID']])
+    else:
+        print("No proteins found for this taxonomy ID")
+
+proteinDF.to_csv('medTempProteins.csv', index=False)
+
+
 
 
 
