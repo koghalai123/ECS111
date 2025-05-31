@@ -58,35 +58,6 @@ y = combined_df['label'].astype(int)  # Ensure labels are integers
 # Split data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-'''# SVM Model
-model = LinearSVC()
-model.fit(X_train, y_train)
-
-y_pred = model.predict(X_train)
-trainAccuracy = accuracy_score(y_train, y_pred)
-print("SVM Accuracy Train:", trainAccuracy)
-y_pred = model.predict(X_test)
-testAccuracy = accuracy_score(y_test, y_pred)
-print("SVM Accuracy Test:", testAccuracy)
-
-
-
-# Perform logistic regression
-model = LogisticRegression(max_iter=500, penalty='l2', solver='liblinear')
-model.fit(X_train, y_train)
-
-# Predict and evaluate
-y_pred_train = model.predict(X_train)
-y_pred_test = model.predict(X_test)
-
-train_accuracy = accuracy_score(y_train, y_pred_train)
-test_accuracy = accuracy_score(y_test, y_pred_test)
-
-print("Logistic Training Accuracy:", train_accuracy)
-print("Logistic Testing Accuracy:", test_accuracy)'''
-
-
-
 
 
 # Preprocess the data
@@ -102,120 +73,13 @@ X_val = torch.tensor(validateInput.values, dtype=torch.float32)
 y_train = torch.tensor(y_train.values, dtype=torch.long)  # Ensure labels are integers
 y_val = torch.tensor(y_test.values, dtype=torch.long)
 
-# Define the neural network
-class ProteinClassifierNN(nn.Module):
-    def __init__(self, input_dim, hidden_dim=128, output_dim=2):  # Binary classification
-        super(ProteinClassifierNN, self).__init__()
-        self.fc1 = nn.Linear(input_dim, hidden_dim)
-        self.relu1 = nn.ReLU()
-        self.fc2 = nn.Linear(hidden_dim, output_dim)
-    
-    def forward(self, x):
-        x = self.fc1(x)
-        x = self.relu1(x)
-        x = self.fc2(x)
-        return x
-
 # Initialize the model
 input_dim = X_train.shape[1]
 output_dim = len(torch.unique(y_train))  # Number of classes
-model = ProteinClassifierNN(input_dim, hidden_dim=128, output_dim=output_dim)
 
-# Loss function and optimizer
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-# Move data and model to device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
-
-model.to(device)
-X_train = X_train.to(device)
-y_train = y_train.to(device)
-X_val = X_val.to(device)
-y_val = y_val.to(device)
-
-# Training loop
-train_acc_list = []
-val_acc_list = []
-train_loss_list = []
-val_loss_list = []
-
-epochs = 100
-patience = 10
-best_val_loss = float('inf')
-epochs_since_improvement = 0
-
-'''for epoch in range(epochs):
-    model.train()
-    optimizer.zero_grad()
-    outputs = model(X_train)
-    loss = criterion(outputs, y_train)
-    loss.backward()
-    optimizer.step()
-    
-    # Evaluate on training data
-    train_preds = model(X_train).argmax(dim=1)
-    train_acc = (train_preds == y_train).float().mean().item()
-    train_loss = loss.item()
-    
-    # Evaluate on validation data
-    model.eval()
-    with torch.no_grad():
-        val_outputs = model(X_val)
-        val_loss = criterion(val_outputs, y_val).item()
-        val_preds = val_outputs.argmax(dim=1)
-        val_acc = (val_preds == y_val).float().mean().item()
-    
-    train_acc_list.append(train_acc)
-    val_acc_list.append(val_acc)
-    train_loss_list.append(train_loss)
-    val_loss_list.append(val_loss)
-    
-    print(f"Epoch {epoch+1}/{epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, "
-          f"Train Acc: {train_acc:.3f}, Val Acc: {val_acc:.3f}")
-    
-    # Early stopping
-    if val_loss < best_val_loss:
-        best_val_loss = val_loss
-        epochs_since_improvement = 0
-    else:
-        epochs_since_improvement += 1
-    
-    if epochs_since_improvement >= patience:
-        print(f"Early stopping at epoch {epoch+1} (no val loss improvement for {patience} epochs)")
-        break
-
-# Final evaluation
-model.eval()
-with torch.no_grad():
-    train_preds = model(X_train).argmax(dim=1)
-    train_acc = (train_preds == y_train).float().mean().item()
-    val_preds = model(X_val).argmax(dim=1)
-    val_acc = (val_preds == y_val).float().mean().item()
-
-print(f"Final Train Accuracy: {train_acc:.3f}")
-print(f"Final Validation Accuracy: {val_acc:.3f}")
-
-# Plot accuracy curves
-plt.figure(figsize=(10, 5))
-plt.plot(train_acc_list, label='Train Accuracy')
-plt.plot(val_acc_list, label='Validation Accuracy')
-plt.xlabel('Epoch')
-plt.ylabel('Accuracy')
-plt.title('Training and Validation Accuracy')
-plt.legend()
-plt.show()
-
-# Plot loss curves
-plt.figure(figsize=(10, 5))
-plt.plot(train_loss_list, label='Train Loss')
-plt.plot(val_loss_list, label='Validation Loss')
-plt.xlabel('Epoch')
-plt.ylabel('Loss')
-plt.title('Training and Validation Loss')
-plt.legend()
-plt.show()'''
 
 
 
@@ -316,6 +180,13 @@ for epoch in range(epochs):
     
     val_acc_cnn = val_correct / len(val_loader.dataset)
     val_loss /= len(val_loader)
+
+    # --- Add these lines to save metrics for plotting ---
+    train_acc_list_cnn.append(train_acc_cnn)
+    val_acc_list_cnn.append(val_acc_cnn)
+    train_loss_list_cnn.append(train_loss)
+    val_loss_list_cnn.append(val_loss)
+    # ---------------------------------------------------
 
     print(f"Epoch {epoch+1}/{epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, "
           f"Train Acc: {train_acc_cnn:.3f}, Val Acc: {val_acc_cnn:.3f}")
