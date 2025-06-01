@@ -1,0 +1,3 @@
+Experiment,Best Hyperparameter,Test Accuracy
+C sweep,C=0.1,0.8642
+max_iter sweep,max_iter=5,0.8640

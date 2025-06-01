@@ -1,0 +1,5 @@
+Experiment,Best Hyperparameter,Test Accuracy
+neurons sweep,neurons=8192,0.8760
+layers sweep,layers=4,0.8525
+epochs sweep,epochs=200,0.8743
+optimal-all sweep,"neurons=8192, layers=4, epochs=200",0.8785
