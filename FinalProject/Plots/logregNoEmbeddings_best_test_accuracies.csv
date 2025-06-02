@@ -1,0 +1,2 @@
+Experiment,Best Hyperparameter,Test Accuracy
+No Embeddings,C=1 Max_Iter = 500, 0.733

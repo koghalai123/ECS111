@@ -46,15 +46,14 @@ for max_iter in max_iters:
     print(f"[max_iter sweep] max_iter: {max_iter}, Train Acc: {train_acc_iter[-1]:.4f}, Val Acc: {val_acc_iter[-1]:.4f}")
 
 # --- Plotting and saving plots ---
-plt.figure(figsize=(12, 5))
+plt.figure(figsize=(6, 5))
 
-plt.subplot(1, 2, 1)
 plt.plot(C_values, val_acc_C, marker='o', label='Validation')
 plt.plot(C_values, train_acc_C, marker='x', linestyle='--', label='Train')
 plt.xscale('log')
 plt.xlabel('C (Inverse Regularization Strength)')
 plt.ylabel('Accuracy')
-plt.title('Accuracy vs. C (Max Iterations=500)')
+plt.title('Logistic Regression Accuracy vs. C (Max Iterations=500)')
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
@@ -67,7 +66,7 @@ plt.xscale('log')
 
 plt.xlabel('Max Iterations')
 plt.ylabel('Accuracy')
-plt.title('Accuracy vs. Max Iterations (C=1)')
+plt.title('Logistic Regression Accuracy vs. Max Iterations (C=1)')
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
