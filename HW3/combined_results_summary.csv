@@ -1,0 +1,5 @@
+Model,SVD,Train Acc,Val Acc,Test Acc,Train RMSE,Val RMSE,Test RMSE
+Logistic Regression,No,0.487,0.37,0.415,1.045,1.139,1.123
+Neural Network,No,0.471,0.373,0.416,0.788,1.17,1.094
+Logistic Regression,Yes,0.456,0.361,0.399,1.09,1.151,1.141
+Neural Network,Yes,0.478,0.368,0.403,0.736,1.21,1.118
